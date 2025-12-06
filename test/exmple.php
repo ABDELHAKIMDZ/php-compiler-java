@@ -1,14 +1,14 @@
 var x = 10;
-$text = "unclosed string" ;
+$text = "unclosed string";
 
-if ($y > 5) {
+if ($y > 5 {
 $result = $y * 2;
 }
 
-while (true) {
+while () {
 $i++;
 }
 
-foreach ($items as $item) {
+foreach ($items  $item) {
 total = total + item;
 }
