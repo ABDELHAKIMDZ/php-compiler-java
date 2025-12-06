@@ -1,0 +1,211 @@
+```markdown
+# Rapport de Projet : Analyseur Lexical et Syntaxique pour PHP Simplifié
+
+## 📋 Introduction
+Ce projet consiste en la mise en œuvre d'un analyseur lexical et syntaxique pour un sous-ensemble du langage PHP ,
+ utilisant la technique de **descente récursive**. L'objectif est de comprendre les principes fondamentaux de
+ la construction des compilateurs.
+
+## 🏗️ Architecture du Projet
+
+### Fichiers Implémentés
+
+ 1. **TokenType.java**
+**Rôle** : Définition des types de tokens reconnus par l'analyseur lexical.
+- **Mots-clés** : `VAR`, `IF`, `ELSE`, `WHILE`, `FOREACH`, `AS`
+- **Identifiants** : `IDENTIFIER` (avec ou sans `$`)
+- **Littéraux** : `NUMBER`, `STRING`
+- **Opérateurs** :
+  - Arithmétiques : `PLUS`, `MINUS`, `MUL`, `DIV`
+  - Comparaison : `EQ`, `NEQ`, `LT`, `GT`, `LE`, `GE`
+  - Logiques : `AND`, `OR`
+  - Incrémentation : `INC`, `DEC`
+  - Assignation : `ASSIGN`
+- **Délimiteurs** :
+  - Parenthèses : `LPAREN`, `RPAREN`
+  - Accolades : `LBRACE`, `RBRACE`
+  - Crochets : `LBRACKET`, `RBRACKET`
+  - Ponctuation : `COMMA`, `SEMICOLON`, `DOT`, `QUESTION`, `COLON`
+
+
+  #### 2. **Token.java**
+  **Rôle** : Représentation d'un token avec son type, valeur et ligne.
+  ```java
+  public class Token {
+      public TokenType type;
+      public String value;
+      public int line;
+  }
+  ```
+
+
+#### 3. **Lexer.java**
+**Rôle** : Analyseur lexical convertissant le code source en flux de tokens.
+
+**Méthodes principales** :
+- `tokenize()` : Conversion caractères → tokens
+- `readIdentifierOrKeyword()` : Lecture identifiants/mots-clés
+- `readString()` : Lecture chaînes de caractères
+- `readNumber()` : Lecture nombres
+
+#### 4. **Parser.java**
+**Rôle** : Analyseur syntaxique vérifiant la structure grammaticale.
+
+#### 5. **SyntaxException.java**
+**Rôle** : Gestion des erreurs syntaxiques avec numéros de ligne.
+
+
+#### 6. **Main.java**
+**Rôle** : Point d'entrée du programme, orchestration de l'analyse.
+
+## 🔍 Méthodologie : Descente Récursive
+
+### Principe de la Descente Récursive
+La **descente récursive** est une méthode d'analyse syntaxique descendante où chaque production de la grammaire est implémentée comme une fonction récursive.
+
+
+### Application dans le Projet
+
+#### **Fonctions Principales du Parser**
+
+1. **`parseProgram()`** - Point d'entrée
+```java
+public void parseProgram() {
+    while (peek().type != TokenType.EOF) {
+        parseStatement();
+    }
+}
+```
+
+2. **`parseStatement()`** - Distribution aux différentes structures
+```java
+private void parseStatement() {
+    switch (peek().type) {
+        case VAR: parseVarDecl(); break;
+        case IF: parseIf(); break;
+        case WHILE: parseWhile(); break;
+        // ...
+    }
+}
+```
+
+3. **Fonctions Spécialisées** :
+   - `parseVarDecl()` : Déclarations de variables
+   - `parseIf()`, `parseWhile()`, `parseForeach()` : Structures de contrôle
+   - `parseExpression()` : Expressions arithmétiques et logiques
+
+### Avantages de la Descente Récursive
+
+- ✅ **Simplicité** : Code proche de la grammaire
+- ✅ **Maintenabilité** : Facile à comprendre et modifier
+- ✅ **Détection d'erreurs précise** : Localisation exacte des problèmes
+- ✅ **Adaptabilité** : Extension aisée de la grammaire
+
+
+## 📊 Analyse Lexicale
+
+### Processus d'Analyse Lexicale
+
+1. **Segmentation** : Découpage du code en tokens
+2. **Classification** : Identification du type de chaque token
+3. **Validation** : Vérification de la conformité lexicale
+
+### Tokens Supportés
+
+- **Mots-clés** : `var`, `if`, `else`, `while`, `foreach`, `as`
+- **Identifiants** : Variables avec `$` ou sans
+- **Littéraux** : Nombres, chaînes de caractères
+- **Opérateurs** : Arithmétiques (`+`, `-`, `*`, `/`), de comparaison (`==`, `!=`, `<`, `>`), logiques (`&&`, `||`)
+- **Délimiteurs** : Parenthèses, accolades, crochets, points-virgules
+
+
+## 📐 Analyse Syntaxique
+
+### Grammaire Implémentée
+
+```
+Prog        → StmtList
+StmtList    → Stmt StmtList | ε
+
+Stmt        → VarDecl ';'
+            | Assignment ';'
+            | IfStmt
+            | WhileStmt
+            | ForEachStmt
+            | IncDecStmt ';'
+            | Comparison ';'
+
+VarDecl     → 'var' Identifier [ '=' Expr ]
+Assignment  → Identifier '=' Expr
+IncDecStmt  → Identifier ( '++' | '--' )
+Comparison  → Expr ComparisonOp Expr
+
+IfStmt      → 'if' '(' Expr ')' '{' StmtList '}' [ 'else' '{' StmtList '}' ]
+WhileStmt   → 'while' '(' Expr ')' '{' StmtList '}'
+
+ForEachStmt → 'foreach' '(' Identifier 'as' Identifier ')' '{' StmtList '}'
+
+Expr        → Expr ( '+' | '-' | '*' | '/' | '&&' | '||' ) Expr
+            | '(' Expr ')'
+            | Identifier
+            | Number
+            | String
+
+ComparisonOp → '==' | '!=' | '<' | '>' | '<=' | '>='
+
+Identifier  → [a-zA-Z_][a-zA-Z0-9_]*
+Number      → [0-9]+
+String      → '"' .* '"'
+```
+
+
+
+### Vérifications Syntaxiques
+
+- ✅ Structure des blocs (`{}`, `()`, `[]`)
+- ✅ Point-virgules terminaux
+- ✅ Expressions bien formées
+- ✅ Correspondance des structures de contrôle
+
+## 🧪 Tests et Validation
+
+### Cas de Test Validés
+
+1. **Déclarations simples** : `var x = 10;`
+2. **Structures de contrôle** : `if`, `while`, `foreach`
+3. **Expressions complexes** : `$result = ($a + $b) * $c;`
+4. **Tableaux** : `$numbers = [1, 2, 3];`
+5. **Programmes complets** avec structures imbriquées
+
+### Détection d'Erreurs
+
+L'analyseur détecte :
+- ❌ Chaînes non fermées
+- ❌ Points-virgules manquants
+- ❌ Parenthèses non correspondantes
+- ❌ Expressions incomplètes
+- ❌ Structures mal formées
+
+Stratégie de Récupération
+Approche "Fail-Fast" :
+
+Détection immédiate à la première erreur
+
+Arrêt du parsing avec message descriptif
+
+Localisation précise (numéro de ligne)
+
+
+## 🎯 Résultats
+
+### Succès du Projet
+
+- ✅ **Analyseur lexical fonctionnel** : Tokenisation correcte
+- ✅ **Analyseur syntaxique robuste** : Vérification structurelle
+- ✅ **Gestion d'erreurs efficace** : Messages informatifs
+- ✅ **Couverture grammaticale** : Support du PHP simplifié
+
+##Conclusion
+
+Ce projet a démontré la mise en œuvre réussie d'un analyseur lexical et syntaxique utilisant la méthode de descente récursive.
+ L'analyseur supporte un sous-ensemble significatif de PHP incluant les structures de contrôle avancées comme foreach.

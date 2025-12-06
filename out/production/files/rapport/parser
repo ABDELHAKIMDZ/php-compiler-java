@@ -1,0 +1,188 @@
+package src;
+
+import java.util.*;
+
+public class Parser {
+    private List<Token> tokens;
+    private int pos = 0;
+
+    public Parser(List<Token> tokens) {
+        this.tokens = tokens;
+    }
+
+    private Token peek() {
+        return tokens.get(pos);
+    }
+
+    private Token consume(TokenType type) {
+        Token t = tokens.get(pos);
+        if (t.type != type)
+            throw new SyntaxException("Expected " + type + " but got " + t.type, t.line);
+        pos++;
+        return t;
+    }
+
+    public void parseProgram() {
+        while (peek().type != TokenType.EOF) {
+            parseStatement();
+        }
+    }
+
+    private void parseStatement() {
+        Token t = peek();
+        switch (t.type) {
+            case VAR:
+                parseVarDecl();
+                consume(TokenType.SEMICOLON);
+                break;
+            case IDENTIFIER:
+                parseAssignmentOrIncDec();
+                consume(TokenType.SEMICOLON);
+                break;
+            case IF:
+                parseIf();
+                break;
+            case WHILE:
+                parseWhile();
+                break;
+            case FOREACH:
+                parseForeach();
+                break;
+            default:
+                if (peek().type == TokenType.EOF) {
+                    throw new SyntaxException("Unexpected end of file. Did you forget to close a block with '}'?", peek().line);
+                }else
+                {throw new SyntaxException("Unknown statement: " + t.type, t.line);}
+        }
+    }
+
+    private void parseVarDecl() {
+        consume(TokenType.VAR);
+        consume(TokenType.IDENTIFIER);
+        if (peek().type == TokenType.ASSIGN) {
+            consume(TokenType.ASSIGN);
+            parseExpression();
+        }
+    }
+
+    private void parseAssignmentOrIncDec() {
+        consume(TokenType.IDENTIFIER);
+        Token t = peek();
+
+        if (peek().type == TokenType.ASSIGN) {
+            consume(TokenType.ASSIGN);
+            parseExpression();
+        } else if (peek().type == TokenType.INC) {
+            consume(TokenType.INC);
+        } else if (peek().type == TokenType.DEC) {
+            consume(TokenType.DEC);
+        } else {
+            throw new SyntaxException("Expected =, ++, or -- but got " + t.type, t.line);
+        }
+    }
+
+    private void parseIf() {
+        consume(TokenType.IF);
+        consume(TokenType.LPAREN);
+        parseExpression();
+        consume(TokenType.RPAREN);
+        consume(TokenType.LBRACE);
+        while (peek().type != TokenType.RBRACE) {
+            parseStatement();
+        }
+        consume(TokenType.RBRACE);
+        if (peek().type == TokenType.ELSE) {
+            consume(TokenType.ELSE);
+            consume(TokenType.LBRACE);
+            while (peek().type != TokenType.RBRACE) {
+                parseStatement();
+            }
+            consume(TokenType.RBRACE);
+        }
+    }
+
+    private void parseWhile() {
+        consume(TokenType.WHILE);
+        consume(TokenType.LPAREN);
+        parseExpression();
+        consume(TokenType.RPAREN);
+        consume(TokenType.LBRACE);
+        while (peek().type != TokenType.RBRACE) {
+            parseStatement();
+        }
+        consume(TokenType.RBRACE);
+    }
+
+    private void parseForeach() {
+        consume(TokenType.FOREACH);
+        consume(TokenType.LPAREN);
+        consume(TokenType.IDENTIFIER);
+        consume(TokenType.AS);
+        consume(TokenType.IDENTIFIER);
+        consume(TokenType.RPAREN);
+        consume(TokenType.LBRACE);
+        while (peek().type != TokenType.RBRACE) {
+            parseStatement();
+        }
+        consume(TokenType.RBRACE);
+    }
+
+    private void parseExpression() {
+        parsePrimary();
+        // Accept arbitrary binary operations: (primary op primary op ...)
+        while (isOperator(peek().type)) {
+            pos++; // consume operator
+            parsePrimary();
+        }
+    }
+
+    private void parsePrimary() {
+        Token t = peek();
+        if (t.type == TokenType.NUMBER || t.type == TokenType.STRING) {
+            pos++;
+        } else if (t.type == TokenType.IDENTIFIER) {
+            pos++;
+            // Support for array indexing: items[i]
+            while (peek().type == TokenType.LBRACKET) {
+                consume(TokenType.LBRACKET);
+                parseExpression();
+                consume(TokenType.RBRACKET);
+            }
+        } else if (t.type == TokenType.LPAREN) {
+            consume(TokenType.LPAREN);
+            parseExpression();
+            consume(TokenType.RPAREN);
+        } else if (t.type == TokenType.LBRACKET) {
+            // Array literal
+            consume(TokenType.LBRACKET);
+            if (peek().type != TokenType.RBRACKET) {
+                parseExpression();
+                while (peek().type == TokenType.COMMA) {
+                    consume(TokenType.COMMA);
+                    parseExpression();
+                }
+            }
+            consume(TokenType.RBRACKET);
+
+        } else {
+            throw new SyntaxException("Unexpected token in expression: " + t.type, t.line);
+        }
+    }
+
+    // Utility to test if a token type is a binary operator
+    private boolean isOperator(TokenType type) {
+        return type == TokenType.PLUS ||
+                type == TokenType.MINUS ||
+                type == TokenType.MUL ||
+                type == TokenType.DIV ||
+                type == TokenType.EQ ||
+                type == TokenType.NEQ ||
+                type == TokenType.LT ||
+                type == TokenType.GT ||
+                type == TokenType.LE ||
+                type == TokenType.GE ||
+                type == TokenType.AND ||
+                type == TokenType.OR ||
+                type == TokenType.DOT;      // <-- ADD THIS LINE
+    }
+}
