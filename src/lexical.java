@@ -28,18 +28,17 @@ public class lexical {
             if (c == '\n') {
                 line++;
                 pos++;
-            } else if (Character.isWhitespace(c)) {
+            } else if (espace(c)) {
                 pos++;
-            }else if (c == '$') {
+            } else if (c == '$') {
                 pos++; // skip the '$'
                 Token token = readIdentifierOrKeyword();
-                // Optionally, mark that this is a variable by prefixing value
                 token.value = "$" + token.value;
-                token.type = TokenType.IDENTIFIER; // Should stay IDENTIFIER
+                token.type = TokenType.IDENTIFIER;
                 tokens.add(token);
-            } else if (Character.isLetter(c) || c == '_') {
+            } else if (letter(c) || c == '_') {
                 tokens.add(readIdentifierOrKeyword());
-            } else if (Character.isDigit(c)) {
+            } else if (nomber(c)) {
                 tokens.add(readNumber());
             } else if (c == '"') {
                 tokens.add(readString());
@@ -138,9 +137,27 @@ public class lexical {
         return pos + 1 < input.length() ? input.charAt(pos + 1) : '\0';
     }
 
+    // Méthodes manuelles pour remplacer Character.*
+
+    private boolean espace(char c) {
+        return c == ' ' || c == '\t' || c == '\r' || c == '\f';
+    }
+
+    private boolean letter(char c) {
+        return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
+    }
+
+    private boolean nomber(char c) {
+        return c >= '0' && c <= '9';
+    }
+
+    private boolean letterOrDigit(char c) {
+        return letter(c) || nomber(c);
+    }
+
     private Token readIdentifierOrKeyword() {
         int start = pos;
-        while (pos < input.length() && (Character.isLetterOrDigit(input.charAt(pos)) || input.charAt(pos) == '_'))
+        while (pos < input.length() && (letterOrDigit(input.charAt(pos)) || input.charAt(pos) == '_'))
             pos++;
         String word = input.substring(start, pos);
         return new Token(keywords.getOrDefault(word, TokenType.IDENTIFIER), word, line);
@@ -148,7 +165,7 @@ public class lexical {
 
     private Token readNumber() {
         int start = pos;
-        while (pos < input.length() && Character.isDigit(input.charAt(pos)))
+        while (pos < input.length() && nomber(input.charAt(pos)))
             pos++;
         return new Token(TokenType.NUMBER, input.substring(start, pos), line);
     }
