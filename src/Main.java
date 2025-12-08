@@ -5,7 +5,9 @@ import java.util.*;
 
 public class Main {
     public static void main(String[] args) throws Exception {
-        String code = Files.readString(Paths.get("test/exmple.php")); // Change path as desired
+        Scanner sc = new Scanner(System.in);
+        System.out.println("Enter the code :");
+        String code = sc.nextLine(); //Files.readString(Paths.get("test/exmple.php")); // Change path as desired
         lexical lexer = new lexical(code);
         List<Token> tokens = lexer.tokenize();
 
