@@ -2,7 +2,7 @@ package src;
 
 public enum TokenType {
     // Keywords
-    VAR, IF, ELSE, WHILE, FOREACH, AS,
+    VAR, IF, ELSE, WHILE, FOREACH, AS,ECHO, FSCANF,
     // Identifiers and literals
     IDENTIFIER, NUMBER, STRING,
     // Operators

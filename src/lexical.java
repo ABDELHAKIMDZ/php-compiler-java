@@ -14,7 +14,9 @@ public class lexical {
             "else", TokenType.ELSE,
             "while", TokenType.WHILE,
             "foreach", TokenType.FOREACH,
-            "as", TokenType.AS
+            "as", TokenType.AS,
+            "echo", TokenType.ECHO,      // <-- AJOUTER ICI
+            "fscanf", TokenType.FSCANF
     );
 
     public lexical(String input) {

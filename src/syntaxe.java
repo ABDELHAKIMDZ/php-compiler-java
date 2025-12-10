@@ -48,6 +48,14 @@ public class syntaxe {
             case FOREACH:
                 analyseForeach();
                 break;
+            case ECHO:                     // <-- AJOUTER ICI
+                analyseEcho();
+                consume(TokenType.SEMICOLON);
+                break;
+            case FSCANF:                   // <-- AJOUTER ICI
+                analyseFscanf();
+                consume(TokenType.SEMICOLON);
+                break;
             default:
                 if (peek().type == TokenType.EOF) {
                     throw new SyntaxException("Unexpected end of file. Did you forget to close a block with '}'?", peek().line);
@@ -100,7 +108,39 @@ public class syntaxe {
             consume(TokenType.RBRACE);
         }
     }
+    private void analyseEcho() {
+        consume(TokenType.ECHO);
+        // echo peut avoir plusieurs arguments séparés par des virgules
+        analyseExpression();
+        while (peek().type == TokenType.COMMA) {
+            consume(TokenType.COMMA);
+            analyseExpression();
+        }
+    }
 
+    private void analyseFscanf() {
+        consume(TokenType.FSCANF);
+        consume(TokenType.LPAREN);
+
+        // Premier paramètre : fichier ou stream
+        analyseExpression();
+        consume(TokenType.COMMA);
+
+        // Deuxième paramètre : format string
+        consume(TokenType.STRING);
+
+        // Paramètres supplémentaires optionnels (variables)
+        while (peek().type == TokenType.COMMA) {
+            consume(TokenType.COMMA);
+            // Doit être une variable (commençant par $)
+            Token varToken = consume(TokenType.IDENTIFIER);
+            if (!varToken.value.startsWith("$")) {
+                throw new SyntaxException("fscanf expects variable parameters starting with $", varToken.line);
+            }
+        }
+
+        consume(TokenType.RPAREN);
+    }
     private void analyseWhile() {
         consume(TokenType.WHILE);
         consume(TokenType.LPAREN);
