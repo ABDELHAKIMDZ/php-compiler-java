@@ -6,8 +6,17 @@ import java.util.*;
 public class Main {
     public static void main(String[] args) throws Exception {
         Scanner sc = new Scanner(System.in);
-        System.out.println("Enter the code :");
-        String code = sc.nextLine(); //Files.readString(Paths.get("test/exmple.php")); // Change path as desired
+        System.out.println("Enter the code you want to analyse :");
+        String code = sc.nextLine();// Files.readString(Paths.get("test/exmple.php")).trim();
+
+        if (!code.startsWith("<?php") || !code.endsWith("?>")) {
+            System.err.println("Syntax Error: File must start with '<?php' and end with '?>'");
+            return;
+        }
+
+        // Remove the php tags for parsing
+        code = code.substring("<?php".length(), code.length() - 2).trim();
+
         lexical lexer = new lexical(code);
         List<Token> tokens = lexer.tokenize();
 
